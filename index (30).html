@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2c3e50">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>La Mia Agenda Personale</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📋</text></svg>">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+  body { background: #f0f2f5; color: #333; padding: 10px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  header { background: linear-gradient(135deg, #2c3e50, #3498db); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+  header h1 { font-size: 24px; }
+  header p { opacity: 0.9; font-size: 14px; margin-top: 5px; }
+  .tabs { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; }
+  .tab { padding: 10px 20px; background: white; border: none; border-radius: 8px 8px 0 0; cursor: pointer; font-size: 14px; font-weight: 600; color: #555; transition: 0.2s; position: relative; }
+  .tab.active { background: #3498db; color: white; }
+  .tab .badge-count { position: absolute; top: -5px; right: -5px; background: #e74c3c; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+  .panel { display: none; background: white; padding: 20px; border-radius: 0 10px 10px 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+  .panel.active { display: block; }
+  h2 { color: #2c3e50; margin-bottom: 15px; font-size: 20px; }
+  .btn { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.2s; }
+  .btn-primary { background: #3498db; color: white; }
+  .btn-primary:hover { background: #2980b9; }
+  .btn-success { background: #27ae60; color: white; }
+  .btn-success:hover { background: #229954; }
+  .btn-danger { background: #e74c3c; color: white; }
+  .btn-danger:hover { background: #c0392b; }
+  .btn-warning { background: #f39c12; color: white; }
+  .btn-small { padding: 5px 10px; font-size: 12px; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 15px; }
+  .form-grid input, .form-grid select, .form-grid textarea { padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; width: 100%; }
+  .form-grid textarea { grid-column: 1 / -1; min-height: 60px; resize: vertical; }
+  .form-grid label { font-size: 12px; color: #666; font-weight: 600; display: block; margin-bottom: 3px; }
+  .checkbox-row { display: flex; align-items: center; gap: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px; flex-wrap: wrap; }
+  .checkbox-row input[type="checkbox"] { width: 18px; height: 18px; }
+  .client-card { background: #f8f9fa; border-left: 4px solid #3498db; padding: 15px; margin-bottom: 10px; border-radius: 6px; }
+  .client-card.vip { border-left-color: #f39c12; background: #fff9e6; }
+  .client-card.prospect { border-left-color: #9b59b6; background: #f5eef8; }
+  .client-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+  .client-name { font-size: 18px; font-weight: 700; color: #2c3e50; }
+  .client-company { color: #7f8c8d; font-size: 14px; }
+  .client-actions { display: flex; gap: 5px; flex-wrap: wrap; }
+  .action-btn { padding: 6px 10px; border-radius: 5px; text-decoration: none; font-size: 12px; font-weight: 600; display: inline-block; }
+  .action-call { background: #27ae60; color: white; }
+  .action-mail { background: #e67e22; color: white; }
+  .action-wa { background: #25d366; color: white; }
+  .action-li { background: #0077b5; color: white; }
+  .action-web { background: #34495e; color: white; }
+  .client-details { font-size: 13px; color: #555; margin-top: 8px; line-height: 1.6; }
+  .client-details strong { color: #2c3e50; }
+  .client-notes { background: white; padding: 10px; border-radius: 5px; margin-top: 10px; font-style: italic; color: #555; font-size: 13px; }
+  .search-bar { margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .search-bar input, .search-bar select { padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; flex: 1; min-width: 150px; }
+  .appointment, .todo, .reminder { background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 8px; border-left: 4px solid #3498db; }
+  .appointment.urgent, .todo.urgent, .reminder.urgent { border-left-color: #e74c3c; background: #fdf2f2; }
+  .reminder.scheduled { border-left-color: #f39c12; background: #fff9e6; }
+  .appointment.done, .todo.done, .reminder.done { opacity: 0.5; text-decoration: line-through; }
+  .alert-box { background: #fff3cd; border-left: 4px solid #f39c12; padding: 12px; border-radius: 6px; margin-bottom: 15px; }
+  .alert-box.danger { background: #f8d7da; border-left-color: #e74c3c; }
+  .alert-box h3 { font-size: 14px; margin-bottom: 5px; }
+  .empty { text-align: center; padding: 30px; color: #95a5a6; font-style: italic; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .stat-card { background: white; padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+  .stat-card .num { font-size: 28px; font-weight: 700; color: #3498db; }
+  .stat-card .lbl { font-size: 12px; color: #7f8c8d; text-transform: uppercase; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-left: 5px; }
+  .badge-vip { background: #f39c12; color: white; }
+  .badge-prospect { background: #9b59b6; color: white; }
+  .badge-cliente { background: #27ae60; color: white; }
+  .info-banner { background: #d1ecf1; border-left: 4px solid #17a2b8; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; }
+  .info-banner strong { color: #0c5460; }
+  .info-banner.success { background: #d4edda; border-left-color: #27ae60; }
+  .info-banner.success strong { color: #155724; }
+  .info-banner.warning { background: #fff3cd; border-left-color: #f39c12; }
+  .info-banner.warning strong { color: #856404; }
+  .info-banner.danger { background: #f8d7da; border-left-color: #e74c3c; }
+  .info-banner.danger strong { color: #721c24; }
+
+  /* BACKUP PANEL */
+  .backup-section { background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px dashed #3498db; }
+  .backup-section h3 { color: #2c3e50; margin-bottom: 10px; font-size: 18px; }
+  .backup-section p { color: #555; margin-bottom: 15px; font-size: 14px; line-height: 1.5; }
+  .backup-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .backup-actions .btn { padding: 12px 20px; font-size: 15px; }
+  .backup-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 15px; padding: 15px; background: white; border-radius: 8px; }
+  .backup-stat { text-align: center; }
+  .backup-stat .num { font-size: 24px; font-weight: 700; color: #3498db; }
+  .backup-stat .lbl { font-size: 12px; color: #7f8c8d; }
+  #fileInput { display: none; }
+
+  /* MODAL ALLARME */
+  .alarm-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; animation: pulse-bg 2s infinite; }
+  .alarm-overlay.active { display: flex; }
+  @keyframes pulse-bg { 0%,100% { background: rgba(0,0,0,0.85); } 50% { background: rgba(231,76,60,0.85); } }
+  .alarm-box { background: white; padding: 40px; border-radius: 20px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 0 50px rgba(231,76,60,0.8); animation: shake 0.5s infinite; }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+  .alarm-box h2 { color: #e74c3c; font-size: 32px; margin-bottom: 15px; }
+  .alarm-box .alarm-icon { font-size: 80px; animation: ring 1s infinite; display: inline-block; }
+  @keyframes ring { 0%,100% { transform: rotate(0); } 25% { transform: rotate(20deg); } 75% { transform: rotate(-20deg); } }
+  .alarm-box .alarm-title { font-size: 22px; font-weight: 700; margin: 15px 0; color: #2c3e50; }
+  .alarm-box .alarm-desc { font-size: 16px; color: #555; margin-bottom: 25px; }
+  .alarm-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .alarm-actions .btn { padding: 12px 24px; font-size: 16px; }
+
+  @media (max-width: 600px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .client-header { flex-direction: column; }
+    .alarm-box { padding: 25px; }
+    .alarm-box h2 { font-size: 24px; }
+    .alarm-box .alarm-icon { font-size: 60px; }
+  }
+
+  /* ===== MOBILE / ANDROID RESPONSIVE UPGRADE ===== */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    touch-action: manipulation;
+    background: #f0f2f5;
+  }
+
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding:
+      max(8px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right))
+      max(12px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
+    overscroll-behavior-y: contain;
+  }
+
+  button, input, select, textarea, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn, .tab, .action-btn {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .form-grid input,
+  .form-grid select,
+  .form-grid textarea {
+    min-height: 44px;
+  }
+
+  .form-grid textarea {
+    min-height: 96px;
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    .btn, .tab, .action-btn {
+      min-height: 46px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    body {
+      padding-left: max(6px, env(safe-area-inset-left));
+      padding-right: max(6px, env(safe-area-inset-right));
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+
+    .container {
+      width: 100%;
+      max-width: none;
+    }
+
+    header {
+      padding: 16px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+    }
+
+    header h1 {
+      font-size: 21px;
+      line-height: 1.2;
+    }
+
+    header p {
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .stat-card {
+      padding: 11px 8px;
+      min-width: 0;
+    }
+
+    .stat-card .num {
+      font-size: 24px;
+    }
+
+    .stat-card .lbl {
+      font-size: 10px;
+      line-height: 1.2;
+    }
+
+    .tabs {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      gap: 6px;
+      margin: 0 -6px 10px;
+      padding: 7px 6px;
+      background: rgba(240,242,245,.97);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab {
+      flex: 0 0 auto;
+      white-space: nowrap;
+      border-radius: 9px;
+      padding: 9px 13px;
+      font-size: 13px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+
+    .tab .badge-count {
+      top: -3px;
+      right: -3px;
+    }
+
+    .panel {
+      padding: 14px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    }
+
+    h2 {
+      font-size: 18px;
+      line-height: 1.25;
+      margin-bottom: 12px;
+    }
+
+    .form-grid {
+      grid-template-columns: 1fr !important;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .form-grid > div,
+    .form-grid textarea {
+      grid-column: 1 / -1 !important;
+    }
+
+    .form-grid label {
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
+    .form-grid input,
+    .form-grid select,
+    .form-grid textarea,
+    .search-bar input,
+    .search-bar select {
+      font-size: 16px !important; /* evita lo zoom automatico di Android/iOS */
+      padding: 11px 12px;
+      border-radius: 9px;
+    }
+
+    .checkbox-row {
+      align-items: stretch;
+      gap: 8px;
+      padding: 10px;
+    }
+
+    .checkbox-row input[type="checkbox"] {
+      min-width: 22px;
+      width: 22px;
+      height: 22px;
+      align-self: center;
+    }
+
+    .checkbox-row select,
+    .checkbox-row input[type="date"],
+    .checkbox-row input[type="time"] {
+      flex: 1 1 140px;
+      min-width: 0;
+      min-height: 44px;
+      font-size: 16px !important;
+    }
+
+    .search-bar {
+      gap: 8px;
+    }
+
+    .search-bar input,
+    .search-bar select {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+
+    .client-card,
+    .appointment,
+    .todo,
+    .reminder,
+    .alert-box {
+      padding: 12px;
+      border-radius: 9px;
+      overflow-wrap: anywhere;
+    }
+
+    .client-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+
+    .client-name {
+      font-size: 17px;
+      line-height: 1.3;
+    }
+
+    .client-company,
+    .client-details,
+    .client-notes {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .client-actions {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .client-actions .action-btn,
+    .client-actions .btn {
+      width: 100%;
+      min-width: 0;
+      padding: 8px 6px;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .appointment > div,
+    .todo > div,
+    .reminder > div {
+      gap: 10px !important;
+    }
+
+    .appointment .btn,
+    .todo .btn,
+    .reminder .btn {
+      min-width: 44px;
+    }
+
+    .info-banner {
+      padding: 11px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .backup-section {
+      padding: 14px;
+      border-radius: 10px;
+    }
+
+    .backup-actions {
+      flex-direction: column;
+    }
+
+    .backup-actions .btn {
+      width: 100%;
+      min-height: 48px;
+    }
+
+    .backup-stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      padding: 10px;
+      gap: 8px;
+    }
+
+    .alarm-overlay {
+      padding:
+        max(12px, env(safe-area-inset-top))
+        max(12px, env(safe-area-inset-right))
+        max(12px, env(safe-area-inset-bottom))
+        max(12px, env(safe-area-inset-left));
+    }
+
+    .alarm-box {
+      width: 100%;
+      max-width: 480px;
+      max-height: 90dvh;
+      overflow-y: auto;
+      padding: 22px 16px;
+      border-radius: 18px;
+    }
+
+    .alarm-box h2 {
+      font-size: 25px;
+    }
+
+    .alarm-box .alarm-icon {
+      font-size: 58px;
+    }
+
+    .alarm-box .alarm-title {
+      font-size: 19px;
+      line-height: 1.3;
+    }
+
+    .alarm-box .alarm-desc {
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    .alarm-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .alarm-actions .btn {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 8px;
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 390px) {
+    .stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tab {
+      padding: 8px 11px;
+      font-size: 12px;
+    }
+
+    .panel {
+      padding: 11px;
+    }
+
+    .client-actions {
+      grid-template-columns: 1fr;
+    }
+
+    .alarm-actions {
+      grid-template-columns: 1fr;
+    }
+
+    .backup-stats {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (orientation: landscape) and (max-height: 520px) {
+    header {
+      padding: 10px 14px;
+    }
+
+    header p {
+      display: none;
+    }
+
+    .stats {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    .alarm-box {
+      max-height: 86dvh;
+      padding: 14px;
+    }
+
+    .alarm-box .alarm-icon {
+      font-size: 42px;
+    }
+  }
+
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>📋 La Mia Agenda Personale</h1>
+    <p>Gestione Clienti, Appuntamenti, Scadenze e <strong>Reminder con Notifiche</strong></p>
+  </header>
+
+  <div id="notifBanner" class="info-banner" style="display:none;">
+    ⚠️ <strong>Notifiche non abilitate!</strong> Attivale per ricevere gli avvisi dei reminder.
+    <button class="btn btn-primary btn-small" onclick="requestNotifPermission()" style="margin-left:10px;">Attiva / Controlla</button>
+  </div>
+
+  <div id="nativeStatusPanel" class="info-banner success" style="display:none;">
+    <div><strong>📱 Android:</strong> <span id="nativeStatusText">Controllo notifiche...</span></div>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn btn-primary btn-small" onclick="requestNotifPermission()">🔔 Controlla permessi</button>
+      <button class="btn btn-warning btn-small" onclick="testNativeNotification()">🧪 Test tra 20 secondi</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="num" id="statClients">0</div><div class="lbl">Clienti</div></div>
+    <div class="stat-card"><div class="num" id="statAppointments">0</div><div class="lbl">Appuntamenti</div></div>
+    <div class="stat-card"><div class="num" id="statTodos">0</div><div class="lbl">Da Fare</div></div>
+    <div class="stat-card"><div class="num" id="statAlerts">0</div><div class="lbl">Alert Attivi</div></div>
+    <div class="stat-card"><div class="num" id="statReminders">0</div><div class="lbl">Reminder</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('clients', this)">👥 Clienti</button>
+    <button class="tab" onclick="showTab('appointments', this)">📅 Appuntamenti</button>
+    <button class="tab" onclick="showTab('todos', this)">✅ Da Fare</button>
+    <button class="tab" onclick="showTab('reminders', this)">⏰ Reminder <span class="badge-count" id="reminderBadge" style="display:none;">0</span></button>
+    <button class="tab" onclick="showTab('alerts', this)">🔔 Alert</button>
+    <button class="tab" onclick="showTab('backup', this)">💾 Backup</button>
+  </div>
+
+  <!-- PANNELLO CLIENTI -->
+  <div id="clients" class="panel active">
+    <h2>Aggiungi / Modifica Cliente</h2>
+    <div class="form-grid">
+      <div><label>Nome *</label><input type="text" id="cName" placeholder="Mario Rossi"></div>
+      <div><label>Azienda</label><input type="text" id="cCompany" placeholder="Azienda SRL"></div>
+      <div><label>Telefono</label><input type="tel" id="cPhone" placeholder="+39 333 1234567"></div>
+      <div><label>Email</label><input type="email" id="cEmail" placeholder="mario@azienda.com"></div>
+      <div><label>WhatsApp (solo numero)</label><input type="text" id="cWhatsapp" placeholder="393331234567"></div>
+      <div><label>LinkedIn</label><input type="url" id="cLinkedin" placeholder="https://linkedin.com/in/..."></div>
+      <div><label>Sito Web</label><input type="url" id="cWebsite" placeholder="https://..."></div>
+      <div><label>Instagram</label><input type="text" id="cInstagram" placeholder="@username"></div>
+      <div><label>Facebook</label><input type="url" id="cFacebook" placeholder="https://facebook.com/..."></div>
+      <div><label>Città / Zona</label><input type="text" id="cCity" placeholder="Milano"></div>
+      <div><label>Fonte</label>
+        <select id="cSource">
+          <option value="">-- Seleziona --</option>
+          <option>Passaparola</option><option>LinkedIn</option><option>Sito Web</option>
+          <option>Fiera/Evento</option><option>Google</option><option>Altro</option>
+        </select>
+      </div>
+      <div><label>Tipo Contatto</label>
+        <select id="cType">
+          <option value="prospect">Prospect</option>
+          <option value="cliente">Cliente Attivo</option>
+          <option value="vip">VIP</option>
+          <option value="perso">Perso / Inattivo</option>
+        </select>
+      </div>
+      <div><label>Interesse</label><input type="text" id="cInterest" placeholder="Es. Preventivo impianto..."></div>
+      <div><label>Compleanno</label><input type="date" id="cBirthday"></div>
+      <div><label>Prossima Scadenza</label><input type="date" id="cDeadline"></div>
+      <div style="grid-column: 1 / -1;"><label>Note / Storico</label><textarea id="cNotes" placeholder="Cosa vi siete detti..."></textarea></div>
+    </div>
+    <button class="btn btn-success" onclick="saveClient()">💾 Salva Cliente</button>
+    <button class="btn btn-danger" onclick="resetForm()" id="cancelBtn" style="display:none;">Annulla</button>
+
+    <h2 style="margin-top: 30px;">Elenco Clienti</h2>
+    <div class="search-bar">
+      <input type="text" id="searchClient" placeholder="🔍 Cerca..." oninput="renderClients()">
+      <select id="filterType" onchange="renderClients()">
+        <option value="">Tutti i tipi</option>
+        <option value="prospect">Prospect</option>
+        <option value="cliente">Cliente</option>
+        <option value="vip">VIP</option>
+        <option value="perso">Perso</option>
+      </select>
+    </div>
+    <div id="clientsList"></div>
+  </div>
+
+  <!-- PANNELLO APPUNTAMENTI -->
+  <div id="appointments" class="panel">
+    <h2>Nuovo Appuntamento</h2>
+    <div class="form-grid">
+      <div><label>Data *</label><input type="date" id="aDate"></div>
+      <div><label>Ora</label><input type="time" id="aTime"></div>
+      <div><label>Cliente / Persona</label><input type="text" id="aClient" placeholder="Nome o azienda"></div>
+      <div><label>Luogo / Modalità</label><input type="text" id="aPlace" placeholder="Ufficio, Zoom..."></div>
+      <div style="grid-column: 1 / -1;"><label>Note</label><textarea id="aNotes" placeholder="Argomenti..."></textarea></div>
+      <div style="grid-column: 1 / -1;">
+        <div class="checkbox-row">
+          <input type="checkbox" id="aReminder">
+          <label for="aReminder" style="margin:0; font-size:14px;">🔔 Avvisami prima</label>
+          <select id="aReminderWhen" style="padding:5px; border:1px solid #ddd; border-radius:5px;">
+            <option value="0">Al momento esatto</option>
+            <option value="5">5 minuti prima</option>
+            <option value="15" selected>15 minuti prima</option>
+            <option value="30">30 minuti prima</option>
+            <option value="60">1 ora prima</option>
+            <option value="1440">1 giorno prima</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-success" onclick="saveAppointment()">💾 Salva Appuntamento</button>
+
+    <h2 style="margin-top: 30px;">Prossimi Appuntamenti</h2>
+    <div id="appointmentsList"></div>
+  </div>
+
+  <!-- PANNELLO TODO -->
+  <div id="todos" class="panel">
+    <h2>Nuova Attività / Chiamata da Fare</h2>
+    <div class="form-grid">
+      <div><label>Cosa fare *</label><input type="text" id="tTask" placeholder="Es. Chiamare Marco"></div>
+      <div><label>Entro quando</label><input type="date" id="tDue"></div>
+      <div><label>Priorità</label>
+        <select id="tPriority">
+          <option value="normal">Normale</option>
+          <option value="high">Alta 🔴</option>
+        </select>
+      </div>
+      <div><label>Tipo</label>
+        <select id="tType">
+          <option value="call">📞 Chiamata</option>
+          <option value="email">✉️ Email</option>
+          <option value="meeting">🤝 Incontro</option>
+          <option value="other">📝 Altro</option>
+        </select>
+      </div>
+      <div style="grid-column: 1 / -1;">
+        <div class="checkbox-row">
+          <input type="checkbox" id="tReminder">
+          <label for="tReminder" style="margin:0; font-size:14px;">🔔 Avvisami il</label>
+          <input type="date" id="tReminderDate" style="padding:5px; border:1px solid #ddd; border-radius:5px;">
+          <input type="time" id="tReminderTime" style="padding:5px; border:1px solid #ddd; border-radius:5px;">
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-success" onclick="saveTodo()">💾 Salva Attività</button>
+
+    <h2 style="margin-top: 30px;">Cose da Fare</h2>
+    <div id="todosList"></div>
+  </div>
+
+  <!-- PANNELLO REMINDER -->
+  <div id="reminders" class="panel">
+    <h2>Nuovo Reminder Libero</h2>
+    <div class="info-banner">
+      💡 Crea un promemoria veloce. Su Android la notifica viene programmata nel sistema: può arrivare anche con schermo spento e app chiusa.
+    </div>
+    <div class="form-grid">
+      <div><label>Titolo *</label><input type="text" id="rTitle" placeholder="Es. Chiamare Mario Rossi"></div>
+      <div><label>Data *</label><input type="date" id="rDate"></div>
+      <div><label>Ora *</label><input type="time" id="rTime"></div>
+      <div><label>Collega a cliente (opzionale)</label>
+        <select id="rClient">
+          <option value="">-- Nessun cliente --</option>
+        </select>
+      </div>
+      <div style="grid-column: 1 / -1;"><label>Descrizione</label><textarea id="rDesc" placeholder="Dettagli..."></textarea></div>
+    </div>
+    <button class="btn btn-success" onclick="saveReminder()">💾 Salva Reminder</button>
+
+    <h2 style="margin-top: 30px;">I Tuoi Reminder</h2>
+    <div id="remindersList"></div>
+  </div>
+
+  <!-- PANNELLO ALERT -->
+  <div id="alerts" class="panel">
+    <h2>🔔 Alert e Scadenze</h2>
+    <div id="alertsList"></div>
+  </div>
+
+  <!-- PANNELLO BACKUP -->
+  <div id="backup" class="panel">
+    <h2>💾 Backup e Ripristino Dati</h2>
+    <div class="info-banner warning">
+      ⚠️ <strong>Attenzione:</strong> i tuoi dati sono salvati nel browser. Se cancelli la cronologia, cambi PC o reinstalli Windows, perdi tutto. Fai un backup regolare!
+    </div>
+
+    <!-- STATISTICHE -->
+    <div class="backup-section">
+      <h3>📊 Riepilogo dei tuoi dati</h3>
+      <div class="backup-stats">
+        <div class="backup-stat"><div class="num" id="bkClients">0</div><div class="lbl">Clienti</div></div>
+        <div class="backup-stat"><div class="num" id="bkAppointments">0</div><div class="lbl">Appuntamenti</div></div>
+        <div class="backup-stat"><div class="num" id="bkTodos">0</div><div class="lbl">Attività</div></div>
+        <div class="backup-stat"><div class="num" id="bkReminders">0</div><div class="lbl">Reminder</div></div>
+      </div>
+    </div>
+
+    <!-- ESPORTA -->
+    <div class="backup-section">
+      <h3>📥 Esporta Backup</h3>
+      <p>Scarica un file con <strong>tutti i tuoi dati</strong> (clienti, appuntamenti, todo, reminder). Salvalo in un posto sicuro (es. chiavetta USB, cloud, email a te stesso).</p>
+      <div class="backup-actions">
+        <button class="btn btn-success" onclick="exportBackup()">📥 Scarica Backup (.json)</button>
+      </div>
+    </div>
+
+    <!-- IMPORTA -->
+    <div class="backup-section">
+      <h3>📤 Importa Backup</h3>
+      <p>Ripristina i dati da un file di backup precedente. <strong>Attenzione:</strong> i dati attuali verranno <strong>sovrascritti</strong>!</p>
+      <div class="backup-actions">
+        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📤 Carica File Backup</button>
+        <input type="file" id="fileInput" accept=".json" onchange="importBackup(event)">
+      </div>
+    </div>
+
+    <!-- CANCELLA TUTTO -->
+    <div class="backup-section" style="border-color: #e74c3c;">
+      <h3 style="color: #e74c3c;">🗑️ Cancella Tutti i Dati</h3>
+      <p style="color: #c0392b;">⚠️ <strong>PERICOLO:</strong> questa azione cancellerà <strong>definitivamente</strong> tutti i tuoi dati. Non si può tornare indietro!</p>
+      <div class="backup-actions">
+        <button class="btn btn-danger" onclick="clearAllData()">🗑️ Cancella Tutto</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ALLARME -->
+<div class="alarm-overlay" id="alarmOverlay">
+  <div class="alarm-box">
+    <div class="alarm-icon">🔔</div>
+    <h2>REMINDER!</h2>
+    <div class="alarm-title" id="alarmTitle">-</div>
+    <div class="alarm-desc" id="alarmDesc">-</div>
+    <div class="alarm-actions">
+      <button class="btn btn-success" onclick="snoozeAlarm(5)">⏰ +5 min</button>
+      <button class="btn btn-warning" onclick="snoozeAlarm(15)">⏰ +15 min</button>
+      <button class="btn btn-primary" onclick="goToClient()">👤 Vai al cliente</button>
+      <button class="btn btn-danger" onclick="dismissAlarm()">✅ Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<script src="capacitor.js"></script>
+<script>
+// ===== DATABASE =====
+let data = {
+  clients: JSON.parse(localStorage.getItem('agenda_clients') || '[]'),
+  appointments: JSON.parse(localStorage.getItem('agenda_appointments') || '[]'),
+  todos: JSON.parse(localStorage.getItem('agenda_todos') || '[]'),
+  reminders: JSON.parse(localStorage.getItem('agenda_reminders') || '[]')
+};
+let editingClientId = null;
+let currentAlarm = null;
+let audioCtx = null;
+let beepInterval = null;
+
+function save() {
+  localStorage.setItem('agenda_clients', JSON.stringify(data.clients));
+  localStorage.setItem('agenda_appointments', JSON.stringify(data.appointments));
+  localStorage.setItem('agenda_todos', JSON.stringify(data.todos));
+  localStorage.setItem('agenda_reminders', JSON.stringify(data.reminders));
+  updateStats();
+  updateBackupStats();
+}
+
+function updateStats() {
+  document.getElementById('statClients').textContent = data.clients.length;
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('statAppointments').textContent = data.appointments.filter(a => a.date >= today && !a.done).length;
+  document.getElementById('statTodos').textContent = data.todos.filter(t => !t.done).length;
+  document.getElementById('statAlerts').textContent = getAlerts().length;
+  const activeReminders = data.reminders.filter(r => !r.done && r.triggerAt).length;
+  document.getElementById('statReminders').textContent = activeReminders;
+  const badge = document.getElementById('reminderBadge');
+  if (activeReminders > 0) { badge.style.display = 'flex'; badge.textContent = activeReminders; }
+  else badge.style.display = 'none';
+}
+
+function updateBackupStats() {
+  document.getElementById('bkClients').textContent = data.clients.length;
+  document.getElementById('bkAppointments').textContent = data.appointments.length;
+  document.getElementById('bkTodos').textContent = data.todos.length;
+  document.getElementById('bkReminders').textContent = data.reminders.length;
+}
+
+function showTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'reminders') fillClientSelect();
+  if (id === 'backup') updateBackupStats();
+}
+
+// ===== BACKUP =====
+function exportBackup() {
+  const backupData = {
+    version: '1.0',
+    exportDate: new Date().toISOString(),
+    data: data
+  };
+  const jsonStr = JSON.stringify(backupData, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().split('T')[0];
+  a.href = url;
+  a.download = `backup-agenda-${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  alert('✅ Backup scaricato con successo!\n\nConservalo in un posto sicuro (es. chiavetta USB, cloud, email).');
+}
+
+function importBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!confirm('⚠️ ATTENZIONE!\n\nI dati attuali verranno SOVRASCRITTI con quelli del backup.\n\nSei sicuro di voler continuare?')) {
+    event.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!imported.data) {
+        alert('❌ File di backup non valido!');
+        return;
+      }
+      data.clients = imported.data.clients || [];
+      data.appointments = imported.data.appointments || [];
+      data.todos = imported.data.todos || [];
+      data.reminders = imported.data.reminders || [];
+      save();
+      renderAll();
+      rescheduleAllNativeReminders();
+      alert('✅ Backup importato con successo!\n\nDati ripristinati:\n- ' + data.clients.length + ' clienti\n- ' + data.appointments.length + ' appuntamenti\n- ' + data.todos.length + ' attività\n- ' + data.reminders.length + ' reminder');
+    } catch (err) {
+      alert('❌ Errore nel leggere il file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function clearAllData() {
+  if (!confirm('⚠️ ATTENZIONE!\n\nStai per CANCELLARE TUTTI i dati:\n- Tutti i clienti\n- Tutti gli appuntamenti\n- Tutte le attività\n- Tutti i reminder\n\nQuesta azione NON si può annullare!\n\nSei SICURISSIMO?')) return;
+  if (!confirm('🚨 ULTIMA CONFERMA!\n\nDigita OK nella prossima finestra per confermare la cancellazione TOTALE.')) return;
+  const confirmText = prompt('Per confermare, scrivi "CANCELLA" e premi OK:');
+  if (confirmText !== 'CANCELLA') {
+    alert('❌ Cancellazione annullata.');
+    return;
+  }
+  const remindersToCancel = [...data.reminders];
+  cancelAllAgendaNativeNotifications(remindersToCancel);
+  data.clients = [];
+  data.appointments = [];
+  data.todos = [];
+  data.reminders = [];
+  save();
+  renderAll();
+  alert('🗑️ Tutti i dati sono stati cancellati.');
+}
+
+function renderAll() {
+  renderClients();
+  renderAppointments();
+  renderTodos();
+  renderReminders();
+  renderAlerts();
+  updateBackupStats();
+}
+
+// ===== NOTIFICHE: BROWSER + ANDROID NATIVO =====
+const NATIVE_CHANNEL_ID = 'agenda_reminders_v2';
+const NATIVE_ACTION_TYPE = 'AGENDA_REMINDER_ACTIONS';
+let nativeNotificationsReady = false;
+let cachedLocalNotificationsPlugin = null;
+
+function isNativeApp() {
+  return !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
+}
+
+function getLocalNotificationsPlugin() {
+  if (cachedLocalNotificationsPlugin) return cachedLocalNotificationsPlugin;
+  if (!window.Capacitor) return null;
+  if (typeof window.Capacitor.registerPlugin === 'function') {
+    cachedLocalNotificationsPlugin = window.Capacitor.registerPlugin('LocalNotifications');
+    return cachedLocalNotificationsPlugin;
+  }
+  if (window.Capacitor.Plugins && window.Capacitor.Plugins.LocalNotifications) {
+    cachedLocalNotificationsPlugin = window.Capacitor.Plugins.LocalNotifications;
+    return cachedLocalNotificationsPlugin;
+  }
+  return null;
+}
+
+function nativeNotificationId(reminder) {
+  if (reminder.nativeId) return reminder.nativeId;
+  const raw = Math.abs(Number(reminder.id || Date.now()));
+  reminder.nativeId = (raw % 2000000000) + 1000;
+  return reminder.nativeId;
+}
+
+function setNativeStatus(message, mode='success') {
+  const panel = document.getElementById('nativeStatusPanel');
+  const text = document.getElementById('nativeStatusText');
+  if (!panel || !text) return;
+  if (!isNativeApp()) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  panel.className = 'info-banner ' + mode;
+  text.textContent = message;
+}
+
+async function ensureNativeChannel() {
+  if (!isNativeApp()) return;
+  const LN = getLocalNotificationsPlugin();
+  if (!LN) return;
+  try {
+    await LN.createChannel({
+      id: NATIVE_CHANNEL_ID,
+      name: 'Agenda - Reminder importanti',
+      description: 'Appuntamenti, richiami e promemoria dell’Agenda',
+      importance: 5,
+      visibility: 1,
+      vibration: true,
+      lights: true,
+      lightColor: '#3498DB'
+    });
+  } catch (e) {
+    console.warn('Canale notifiche:', e);
+  }
+}
+
+async function registerNativeActions() {
+  if (!isNativeApp()) return;
+  const LN = getLocalNotificationsPlugin();
+  if (!LN) return;
+  try {
+    await LN.registerActionTypes({
+      types: [{
+        id: NATIVE_ACTION_TYPE,
+        actions: [
+          { id: 'SNOOZE_10', title: 'Posticipa 10 min', foreground: true },
+          { id: 'DONE', title: 'Fatto', foreground: true }
+        ]
+      }]
+    });
+  } catch (e) {
+    console.warn('Azioni notifica:', e);
+  }
+}
+
+async function removeDeliveredNativeNotification(id) {
+  if (!isNativeApp()) return;
+  const LN = getLocalNotificationsPlugin();
+  if (!LN) return;
+  try { await LN.removeDeliveredNotifications({ notifications: [{ id }] }); } catch (e) { console.warn(e); }
+}
+
+async function cancelNativeReminder(reminder) {
+  if (!isNativeApp() || !reminder) return;
+  const LN = getLocalNotificationsPlugin();
+  if (!LN) return;
+  const id = nativeNotificationId(reminder);
+  try { await LN.cancel({ notifications: [{ id }] }); } catch (e) { console.warn(e); }
+  await removeDeliveredNativeNotification(id);
+}
+
+async function scheduleNativeReminder(reminder) {
+  if (!isNativeApp() || !reminder || reminder.done || !reminder.triggerAt) return false;
+  const LN = getLocalNotificationsPlugin();
+  if (!LN) return false;
+  const at = new Date(reminder.triggerAt);
+  if (!Number.isFinite(at.getTime()) || at.getTime() <= Date.now()) return false;
+  const id = nativeNotificationId(reminder);
+  try {
+    await LN.cancel({ notifications: [{ id }] }).catch(() => {});
+    await LN.schedule({
+      notifications: [{
+        id,
+        title: reminder.title || '🔔 Reminder Agenda',
+        body: reminder.description || 'Hai un promemoria in scadenza.',
+        largeBody: reminder.description || 'Hai un promemoria in scadenza.',
+        schedule: { at, allowWhileIdle: true },
+        channelId: NATIVE_CHANNEL_ID,
+        ongoing: true,
+        autoCancel: false,
+        actionTypeId: NATIVE_ACTION_TYPE,
+        extra: { reminderId: String(reminder.id) }
+      }]
+    });
+    return true;
+  } catch (e) {
+    console.error('Errore programmazione reminder nativo:', e);
+    setNativeStatus('Errore nel programmare un reminder. Controlla i permessi Android.', 'danger');
+    return false;
+  }
+}
+
+async function rescheduleAllNativeReminders() {
+  if (!isNativeApp()) return;
+  await ensureNativeChannel();
+  const future = data.reminders.filter(r => !r.done && r.triggerAt && new Date(r.triggerAt).getTime() > Date.now());
+  for (const r of future) await scheduleNativeReminder(r);
+  save();
+}
+
+async function cancelAllAgendaNativeNotifications(remindersSnapshot) {
+  if (!isNativeApp()) return;
+  for (const r of remindersSnapshot || []) await cancelNativeReminder(r);
+}
+
+async function refreshNativeNotificationStatus() {
+  if (!isNativeApp()) return;
+  const LN = getLocalNotificationsPlugin();
+  if (!LN) {
+    setNativeStatus('Plugin notifiche non disponibile. Esegui la sincronizzazione Capacitor.', 'danger');
+    return;
+  }
+  try {
+    const p = await LN.checkPermissions();
+    let exact = { exact_alarm: 'granted' };
+    if (LN.checkExactNotificationSetting) exact = await LN.checkExactNotificationSetting();
+    if (p.display === 'granted' && exact.exact_alarm === 'granted') {
+      setNativeStatus('Notifiche attive · orari precisi attivi · standby supportato.', 'success');
+      document.getElementById('notifBanner').style.display = 'none';
+    } else if (p.display !== 'granted') {
+      setNativeStatus('Permesso notifiche da attivare.', 'warning');
+      document.getElementById('notifBanner').style.display = 'block';
+    } else {
+      setNativeStatus('Notifiche attive, ma “Allarmi e promemoria” va abilitato per gli orari precisi.', 'warning');
+      document.getElementById('notifBanner').style.display = 'block';
+    }
+  } catch (e) {
+    setNativeStatus('Impossibile verificare i permessi Android.', 'danger');
+  }
+}
+
+async function requestNotifPermission() {
+  if (isNativeApp()) {
+    const LN = getLocalNotificationsPlugin();
+    if (!LN) { alert('Plugin notifiche Android non disponibile.'); return; }
+    try {
+      let p = await LN.checkPermissions();
+      if (p.display !== 'granted') p = await LN.requestPermissions();
+      if (p.display !== 'granted') {
+        alert('Per non perdere appuntamenti devi consentire le notifiche all’Agenda.');
+        await refreshNativeNotificationStatus();
+        return;
+      }
+      await ensureNativeChannel();
+      if (LN.checkExactNotificationSetting) {
+        const exact = await LN.checkExactNotificationSetting();
+        if (exact.exact_alarm !== 'granted' && LN.changeExactNotificationSetting) {
+          alert('Ora Android aprirà “Allarmi e promemoria”. Abilita il permesso per far scattare i reminder all’ora esatta anche in standby.');
+          await LN.changeExactNotificationSetting();
+        }
+      }
+      await rescheduleAllNativeReminders();
+      await refreshNativeNotificationStatus();
+    } catch (e) {
+      console.error(e);
+      alert('Non sono riuscito ad attivare completamente le notifiche. Controlla le impostazioni Android dell’Agenda.');
+    }
+    return;
+  }
+
+  if (!("Notification" in window)) {
+    alert("Il tuo browser non supporta le notifiche.");
+    return;
+  }
+  Notification.requestPermission().then(p => {
+    if (p === 'granted') {
+      document.getElementById('notifBanner').style.display = 'none';
+      new Notification('✅ Notifiche attivate!', { body: 'Riceverai gli avvisi dei reminder.' });
+    }
+  });
+}
+
+function checkNotifPermission() {
+  if (isNativeApp()) {
+    refreshNativeNotificationStatus();
+    return;
+  }
+  if (!("Notification" in window)) return;
+  if (Notification.permission !== 'granted') {
+    document.getElementById('notifBanner').style.display = 'block';
+  } else {
+    document.getElementById('notifBanner').style.display = 'none';
+  }
+}
+
+function sendNotification(title, body) {
+  if (isNativeApp()) return; // Su Android ci pensa il sistema nativo.
+  if (Notification.permission === 'granted') {
+    const n = new Notification(title, {
+      body: body,
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🔔</text></svg>',
+      requireInteraction: true,
+      tag: 'agenda-reminder'
+    });
+    n.onclick = () => { window.focus(); n.close(); };
+  }
+}
+
+// ===== SUONO ALLARME (fallback PC/browser) =====
+function startBeep() {
+  if (isNativeApp()) return; // Evita doppio suono: Android usa il canale nativo.
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  let on = false;
+  beepInterval = setInterval(() => {
+    if (on) return;
+    on = true;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.frequency.value = 660;
+    osc.type = 'sine';
+    gain.gain.value = 0.18;
+    osc.start();
+    setTimeout(() => { osc.stop(); on = false; }, 260);
+  }, 900);
+}
+
+function stopBeep() {
+  if (beepInterval) { clearInterval(beepInterval); beepInterval = null; }
+}
+
+// ===== ALLARME VISIVO =====
+function triggerAlarm(reminder, fromNative=false) {
+  currentAlarm = reminder;
+  document.getElementById('alarmTitle').textContent = reminder.title;
+  document.getElementById('alarmDesc').textContent = reminder.description || 'Nessuna descrizione';
+  document.getElementById('alarmOverlay').classList.add('active');
+  if (!fromNative) {
+    startBeep();
+    sendNotification('🔔 ' + reminder.title, reminder.description || 'Reminder in scadenza!');
+  }
+  reminder.triggered = true;
+  save();
+}
+
+function dismissAlarm() {
+  if (currentAlarm) {
+    const r = currentAlarm;
+    currentAlarm.done = true;
+    cancelNativeReminder(r);
+    save();
+    renderReminders();
+  }
+  stopBeep();
+  document.getElementById('alarmOverlay').classList.remove('active');
+  currentAlarm = null;
+}
+
+function snoozeAlarm(mins) {
+  if (currentAlarm) {
+    const newTime = new Date(Date.now() + mins * 60 * 1000);
+    currentAlarm.triggerAt = newTime.toISOString();
+    currentAlarm.triggered = false;
+    scheduleNativeReminder(currentAlarm);
+    save();
+    renderReminders();
+  }
+  stopBeep();
+  document.getElementById('alarmOverlay').classList.remove('active');
+  currentAlarm = null;
+}
+
+function goToClient() {
+  if (currentAlarm && currentAlarm.clientId) {
+    const c = data.clients.find(x => x.id === currentAlarm.clientId);
+    if (c) {
+      stopBeep();
+      document.getElementById('alarmOverlay').classList.remove('active');
+      currentAlarm = null;
+      showTab('clients', document.querySelector('.tab'));
+      editClient(c.id);
+      return;
+    }
+  }
+  alert('Nessun cliente collegato a questo reminder.');
+}
+
+async function testNativeNotification() {
+  if (!isNativeApp()) {
+    alert('Il test nativo funziona solo nell’app Android. Nel browser usa il pulsante Test del reminder.');
+    return;
+  }
+  const LN = getLocalNotificationsPlugin();
+  if (!LN) { alert('Plugin notifiche non disponibile.'); return; }
+  await requestNotifPermission();
+  const at = new Date(Date.now() + 20000);
+  try {
+    await ensureNativeChannel();
+    await LN.schedule({ notifications: [{
+      id: 1999999001,
+      title: '🧪 Test Agenda',
+      body: 'Se vedi questa notifica a schermo spento, il sistema funziona.',
+      schedule: { at, allowWhileIdle: true },
+      channelId: NATIVE_CHANNEL_ID,
+      ongoing: false,
+      autoCancel: true
+    }]});
+    alert('Test programmato tra 20 secondi. Blocca subito lo schermo e aspetta la notifica.');
+  } catch (e) {
+    console.error(e);
+    alert('Test non programmato: controlla permessi notifiche e “Allarmi e promemoria”.');
+  }
+}
+
+async function initNativeNotifications() {
+  if (!isNativeApp()) return;
+  const LN = getLocalNotificationsPlugin();
+  if (!LN) {
+    setNativeStatus('Plugin notifiche non disponibile.', 'danger');
+    return;
+  }
+  try {
+    await ensureNativeChannel();
+    await registerNativeActions();
+    await LN.addListener('localNotificationReceived', event => {
+      const rid = event && event.extra ? event.extra.reminderId : null;
+      if (!rid) return;
+      const r = data.reminders.find(x => String(x.id) === String(rid));
+      if (r && !r.done) triggerAlarm(r, true);
+    });
+    await LN.addListener('localNotificationActionPerformed', action => {
+      const rid = action?.notification?.extra?.reminderId;
+      if (!rid) return;
+      const r = data.reminders.find(x => String(x.id) === String(rid));
+      if (!r) return;
+      if (action.actionId === 'SNOOZE_10') {
+        r.triggerAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+        r.triggered = false;
+        r.done = false;
+        save();
+        renderReminders();
+        scheduleNativeReminder(r);
+      } else if (action.actionId === 'DONE') {
+        r.done = true;
+        save();
+        renderReminders();
+        cancelNativeReminder(r);
+      }
+    });
+    nativeNotificationsReady = true;
+    await refreshNativeNotificationStatus();
+    await rescheduleAllNativeReminders();
+  } catch (e) {
+    console.error('Init notifiche native:', e);
+    setNativeStatus('Errore inizializzazione notifiche native.', 'danger');
+  }
+}
+
+// ===== CONTROLLO REMINDER FALLBACK (PC / browser) =====
+function checkReminders() {
+  if (isNativeApp()) return; // Android usa AlarmManager tramite Local Notifications.
+  const now = Date.now();
+  data.reminders.forEach(r => {
+    if (r.done || !r.triggerAt || r.triggered) return;
+    const triggerTime = new Date(r.triggerAt).getTime();
+    if (now >= triggerTime) triggerAlarm(r);
+  });
+}
+setInterval(checkReminders, 15000);
+
+// ===== CLIENTI =====
+function saveClient() {
+  const name = document.getElementById('cName').value.trim();
+  if (!name) { alert('Inserisci almeno il nome!'); return; }
+  const client = {
+    id: editingClientId || Date.now(),
+    name, company: document.getElementById('cCompany').value,
+    phone: document.getElementById('cPhone').value,
+    email: document.getElementById('cEmail').value,
+    whatsapp: document.getElementById('cWhatsapp').value.replace(/\D/g, ''),
+    linkedin: document.getElementById('cLinkedin').value,
+    website: document.getElementById('cWebsite').value,
+    instagram: document.getElementById('cInstagram').value,
+    facebook: document.getElementById('cFacebook').value,
+    city: document.getElementById('cCity').value,
+    source: document.getElementById('cSource').value,
+    type: document.getElementById('cType').value,
+    interest: document.getElementById('cInterest').value,
+    birthday: document.getElementById('cBirthday').value,
+    deadline: document.getElementById('cDeadline').value,
+    notes: document.getElementById('cNotes').value,
+    createdAt: editingClientId ? (data.clients.find(c=>c.id===editingClientId)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+  };
+  if (editingClientId) data.clients = data.clients.map(c => c.id === editingClientId ? client : c);
+  else data.clients.push(client);
+  save();
+  resetForm();
+  renderClients();
+}
+
+function resetForm() {
+  ['cName','cCompany','cPhone','cEmail','cWhatsapp','cLinkedin','cWebsite','cInstagram','cFacebook','cCity','cSource','cType','cInterest','cBirthday','cDeadline','cNotes'].forEach(id => document.getElementById(id).value = '');
+  editingClientId = null;
+  document.getElementById('cancelBtn').style.display = 'none';
+}
+
+function editClient(id) {
+  const c = data.clients.find(x => x.id === id);
+  if (!c) return;
+  editingClientId = id;
+  ['Name','Company','Phone','Email','Whatsapp','Linkedin','Website','Instagram','Facebook','City','Source','Type','Interest','Birthday','Deadline','Notes'].forEach(f => {
+    const el = document.getElementById('c'+f);
+    if (el) el.value = c[f.toLowerCase()] || '';
+  });
+  document.getElementById('cancelBtn').style.display = 'inline-block';
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function deleteClient(id) {
+  if (!confirm('Eliminare questo cliente?')) return;
+  data.clients = data.clients.filter(c => c.id !== id);
+  save(); renderClients();
+}
+
+function renderClients() {
+  const search = document.getElementById('searchClient').value.toLowerCase();
+  const filter = document.getElementById('filterType').value;
+  const list = document.getElementById('clientsList');
+  let filtered = data.clients.filter(c => {
+    const matchSearch = !search || (c.name||'').toLowerCase().includes(search) || (c.company||'').toLowerCase().includes(search) || (c.city||'').toLowerCase().includes(search);
+    const matchType = !filter || c.type === filter;
+    return matchSearch && matchType;
+  });
+  if (filtered.length === 0) { list.innerHTML = '<div class="empty">Nessun cliente.</div>'; return; }
+  list.innerHTML = filtered.map(c => {
+    const typeLabel = {vip:'VIP', prospect:'Prospect', cliente:'Cliente', perso:'Perso'}[c.type] || '';
+    const badgeClass = {vip:'badge-vip', prospect:'badge-prospect', cliente:'badge-cliente'}[c.type] || '';
+    let actions = '';
+    if (c.phone) actions += `<a href="tel:${c.phone}" class="action-btn action-call">📞 Chiama</a>`;
+    if (c.email) actions += `<a href="mailto:${c.email}" class="action-btn action-mail">✉️ Email</a>`;
+    if (c.whatsapp) actions += `<a href="https://wa.me/${c.whatsapp}" target="_blank" class="action-btn action-wa">💬 WhatsApp</a>`;
+    if (c.linkedin) actions += `<a href="${c.linkedin}" target="_blank" class="action-btn action-li">in LinkedIn</a>`;
+    if (c.website) actions += `<a href="${c.website}" target="_blank" class="action-btn action-web">🌐 Sito</a>`;
+    let details = [];
+    if (c.phone) details.push(`<strong>Tel:</strong> ${c.phone}`);
+    if (c.email) details.push(`<strong>Email:</strong> ${c.email}`);
+    if (c.city) details.push(`<strong>Zona:</strong> ${c.city}`);
+    if (c.source) details.push(`<strong>Fonte:</strong> ${c.source}`);
+    if (c.interest) details.push(`<strong>Interesse:</strong> ${c.interest}`);
+    if (c.birthday) details.push(`<strong>🎂 Compleanno:</strong> ${formatDate(c.birthday)}`);
+    if (c.deadline) details.push(`<strong>⏰ Scadenza:</strong> ${formatDate(c.deadline)}`);
+    return `
+      <div class="client-card ${c.type}">
+        <div class="client-header">
+          <div>
+            <div class="client-name">${c.name} ${badgeClass ? `<span class="badge ${badgeClass}">${typeLabel}</span>` : ''}</div>
+            ${c.company ? `<div class="client-company">🏢 ${c.company}</div>` : ''}
+          </div>
+          <div class="client-actions">
+            ${actions}
+            <button class="btn btn-warning btn-small" onclick="quickReminder(${c.id})">⏰</button>
+            <button class="btn btn-primary btn-small" onclick="editClient(${c.id})">✏️</button>
+            <button class="btn btn-danger btn-small" onclick="deleteClient(${c.id})">🗑️</button>
+          </div>
+        </div>
+        ${details.length ? `<div class="client-details">${details.join(' • ')}</div>` : ''}
+        ${c.notes ? `<div class="client-notes">📝 ${c.notes}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function quickReminder(clientId) {
+  const c = data.clients.find(x => x.id === clientId);
+  if (!c) return;
+  showTab('reminders', document.querySelectorAll('.tab')[3]);
+  fillClientSelect();
+  document.getElementById('rTitle').value = 'Chiamare ' + c.name;
+  document.getElementById('rClient').value = clientId;
+  document.getElementById('rDesc').value = c.notes || '';
+}
+
+// ===== APPUNTAMENTI =====
+function saveAppointment() {
+  const date = document.getElementById('aDate').value;
+  if (!date) { alert('Inserisci la data!'); return; }
+  const time = document.getElementById('aTime').value || '00:00';
+  const appt = {
+    id: Date.now(), date, time,
+    client: document.getElementById('aClient').value,
+    place: document.getElementById('aPlace').value,
+    notes: document.getElementById('aNotes').value,
+    done: false
+  };
+  data.appointments.push(appt);
+  if (document.getElementById('aReminder').checked) {
+    const minsBefore = parseInt(document.getElementById('aReminderWhen').value);
+    const apptTime = new Date(`${date}T${time}`).getTime();
+    const triggerAt = new Date(apptTime - minsBefore * 60 * 1000);
+    const reminder = {
+      id: Date.now() + 1,
+      title: '📅 Appuntamento: ' + (appt.client || 'appuntamento'),
+      description: `${formatDate(date)} alle ${time}${appt.place ? ' - '+appt.place : ''}${appt.notes ? ' - '+appt.notes : ''}`,
+      triggerAt: triggerAt.toISOString(),
+      done: false, triggered: false,
+      linkedType: 'appointment', linkedId: appt.id
+    };
+    data.reminders.push(reminder);
+    scheduleNativeReminder(reminder);
+  }
+  save();
+  ['aDate','aTime','aClient','aPlace','aNotes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('aReminder').checked = false;
+  renderAppointments();
+}
+
+function toggleAppointment(id) {
+  data.appointments = data.appointments.map(a => a.id === id ? {...a, done: !a.done} : a);
+  save(); renderAppointments();
+}
+
+function deleteAppointment(id) {
+  if (!confirm('Eliminare?')) return;
+  data.appointments = data.appointments.filter(a => a.id !== id);
+  save(); renderAppointments();
+}
+
+function renderAppointments() {
+  const list = document.getElementById('appointmentsList');
+  const today = new Date().toISOString().split('T')[0];
+  const sorted = [...data.appointments].sort((a,b) => (a.date+a.time).localeCompare(b.date+b.time));
+  if (sorted.length === 0) { list.innerHTML = '<div class="empty">Nessun appuntamento.</div>'; return; }
+  list.innerHTML = sorted.map(a => {
+    const isPast = a.date < today;
+    const isToday = a.date === today;
+    const cls = a.done ? 'done' : (isPast ? 'urgent' : '');
+    return `
+      <div class="appointment ${cls}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+          <div>
+            <strong>${formatDate(a.date)} ${a.time ? '⏰ '+a.time : ''}</strong>
+            ${isToday ? ' <span class="badge badge-vip">OGGI</span>' : ''}
+            ${isPast && !a.done ? ' <span class="badge" style="background:#e74c3c;color:white">SCADUTO</span>' : ''}
+            ${a.client ? `<div>👤 ${a.client}</div>` : ''}
+            ${a.place ? `<div>📍 ${a.place}</div>` : ''}
+            ${a.notes ? `<div style="margin-top:5px;font-style:italic;color:#666;">${a.notes}</div>` : ''}
+          </div>
+          <div>
+            <button class="btn btn-success btn-small" onclick="toggleAppointment(${a.id})">${a.done ? '↩️' : '✅'}</button>
+            <button class="btn btn-danger btn-small" onclick="deleteAppointment(${a.id})">🗑️</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== TODO =====
+function saveTodo() {
+  const task = document.getElementById('tTask').value.trim();
+  if (!task) { alert('Inserisci cosa fare!'); return; }
+  const todo = {
+    id: Date.now(), task,
+    due: document.getElementById('tDue').value,
+    priority: document.getElementById('tPriority').value,
+    type: document.getElementById('tType').value,
+    done: false
+  };
+  data.todos.push(todo);
+  if (document.getElementById('tReminder').checked) {
+    const rDate = document.getElementById('tReminderDate').value;
+    const rTime = document.getElementById('tReminderTime').value || '09:00';
+    if (rDate) {
+      const triggerAt = new Date(`${rDate}T${rTime}`).toISOString();
+      const reminder = {
+        id: Date.now() + 1,
+        title: '✅ ' + task,
+        description: `Attività da completare${todo.due ? ' entro '+formatDate(todo.due) : ''}`,
+        triggerAt, done: false, triggered: false,
+        linkedType: 'todo', linkedId: todo.id
+      };
+      data.reminders.push(reminder);
+      scheduleNativeReminder(reminder);
+    }
+  }
+  save();
+  ['tTask','tDue','tReminderDate','tReminderTime'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('tReminder').checked = false;
+  renderTodos();
+}
+
+function toggleTodo(id) {
+  data.todos = data.todos.map(t => t.id === id ? {...t, done: !t.done} : t);
+  save(); renderTodos();
+}
+
+function deleteTodo(id) {
+  if (!confirm('Eliminare?')) return;
+  data.todos = data.todos.filter(t => t.id !== id);
+  save(); renderTodos();
+}
+
+function renderTodos() {
+  const list = document.getElementById('todosList');
+  const today = new Date().toISOString().split('T')[0];
+  const sorted = [...data.todos].sort((a,b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return (a.due || '9999').localeCompare(b.due || '9999');
+  });
+  if (sorted.length === 0) { list.innerHTML = '<div class="empty">Nessuna attività.</div>'; return; }
+  const icons = {call:'📞', email:'✉️', meeting:'🤝', other:'📝'};
+  list.innerHTML = sorted.map(t => {
+    const isOverdue = t.due && t.due < today && !t.done;
+    const cls = t.done ? 'done' : (isOverdue || t.priority === 'high' ? 'urgent' : '');
+    return `
+      <div class="todo ${cls}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+          <div>
+            <strong>${icons[t.type] || '📝'} ${t.task}</strong>
+            ${t.priority === 'high' ? ' <span class="badge" style="background:#e74c3c;color:white">ALTA</span>' : ''}
+            ${t.due ? `<div>📅 Entro: ${formatDate(t.due)} ${isOverdue ? '<span class="badge" style="background:#e74c3c;color:white">IN RITARDO</span>' : ''}</div>` : ''}
+          </div>
+          <div>
+            <button class="btn btn-success btn-small" onclick="toggleTodo(${t.id})">${t.done ? '↩️' : '✅'}</button>
+            <button class="btn btn-danger btn-small" onclick="deleteTodo(${t.id})">🗑️</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== REMINDER =====
+function fillClientSelect() {
+  const sel = document.getElementById('rClient');
+  sel.innerHTML = '<option value="">-- Nessun cliente --</option>' +
+    data.clients.map(c => `<option value="${c.id}">${c.name}${c.company ? ' - '+c.company : ''}</option>`).join('');
+}
+
+function saveReminder() {
+  const title = document.getElementById('rTitle').value.trim();
+  const date = document.getElementById('rDate').value;
+  const time = document.getElementById('rTime').value;
+  if (!title || !date || !time) { alert('Compila titolo, data e ora!'); return; }
+  const triggerAt = new Date(`${date}T${time}`).toISOString();
+  const clientId = document.getElementById('rClient').value ? parseInt(document.getElementById('rClient').value) : null;
+  let desc = document.getElementById('rDesc').value;
+  if (clientId) {
+    const c = data.clients.find(x => x.id === clientId);
+    if (c) desc = (desc ? desc + ' | ' : '') + `Cliente: ${c.name}${c.phone ? ' - '+c.phone : ''}`;
+  }
+  const reminder = {
+    id: Date.now(), title, description: desc,
+    triggerAt, done: false, triggered: false,
+    clientId,
+    linkedType: 'client', linkedId: clientId
+  };
+  data.reminders.push(reminder);
+  scheduleNativeReminder(reminder);
+  save();
+  ['rTitle','rDate','rTime','rDesc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('rClient').value = '';
+  renderReminders();
+  alert('✅ Reminder impostato! Riceverai la notifica il ' + formatDate(date) + ' alle ' + time);
+}
+
+function toggleReminder(id) {
+  const r = data.reminders.find(x => x.id === id);
+  if (!r) return;
+  r.done = !r.done;
+  if (r.done) cancelNativeReminder(r);
+  else { r.triggered = false; scheduleNativeReminder(r); }
+  save(); renderReminders();
+}
+
+function deleteReminder(id) {
+  if (!confirm('Eliminare?')) return;
+  const r = data.reminders.find(x => x.id === id);
+  if (r) cancelNativeReminder(r);
+  data.reminders = data.reminders.filter(r => r.id !== id);
+  save(); renderReminders();
+}
+
+function testReminder(id) {
+  const r = data.reminders.find(x => x.id === id);
+  if (!r) return;
+  if (isNativeApp()) {
+    testNativeNotification();
+  } else {
+    r.triggered = false;
+    triggerAlarm(r);
+  }
+}
+
+function renderReminders() {
+  fillClientSelect();
+  const list = document.getElementById('remindersList');
+  const now = Date.now();
+  const sorted = [...data.reminders].sort((a,b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return new Date(a.triggerAt) - new Date(b.triggerAt);
+  });
+  if (sorted.length === 0) { list.innerHTML = '<div class="empty">Nessun reminder.</div>'; return; }
+  list.innerHTML = sorted.map(r => {
+    const triggerDate = new Date(r.triggerAt);
+    const isPast = triggerDate.getTime() < now && !r.done;
+    const isTriggered = r.triggered && !r.done;
+    const cls = r.done ? 'done' : (isTriggered ? 'urgent' : (isPast ? '' : 'scheduled'));
+    const statusBadge = r.done ? '<span class="badge badge-cliente">COMPLETATO</span>' :
+                       isTriggered ? '<span class="badge" style="background:#e74c3c;color:white">⚠️ SCATTATO!</span>' :
+                       isPast ? '<span class="badge" style="background:#95a5a6;color:white">SCADUTO</span>' :
+                       '<span class="badge badge-prospect">IN ATTESA</span>';
+    return `
+      <div class="reminder ${cls}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+          <div>
+            <strong>🔔 ${r.title}</strong> ${statusBadge}
+            <div>📅 ${formatDate(r.triggerAt.split('T')[0])} ⏰ ${r.triggerAt.split('T')[1].substring(0,5)}</div>
+            ${r.description ? `<div style="margin-top:5px;font-style:italic;color:#666;">${r.description}</div>` : ''}
+          </div>
+          <div style="display:flex; gap:5px; flex-wrap:wrap;">
+            ${!r.done ? `<button class="btn btn-warning btn-small" onclick="testReminder(${r.id})">🔊 Test</button>` : ''}
+            <button class="btn btn-success btn-small" onclick="toggleReminder(${r.id})">${r.done ? '↩️' : '✅'}</button>
+            <button class="btn btn-danger btn-small" onclick="deleteReminder(${r.id})">🗑️</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ===== ALERTS =====
+function getAlerts() {
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  const in7 = new Date(today.getTime() + 7*24*60*60*1000).toISOString().split('T')[0];
+  const alerts = [];
+  data.clients.forEach(c => {
+    if (c.deadline) {
+      if (c.deadline < todayStr) alerts.push({type:'danger', text:`⏰ Scadenza PASSATA per <strong>${c.name}</strong> (${formatDate(c.deadline)})`, date: c.deadline});
+      else if (c.deadline <= in7) alerts.push({type:'warning', text:`⚠️ Scadenza imminente per <strong>${c.name}</strong> il ${formatDate(c.deadline)}`, date: c.deadline});
+    }
+    if (c.birthday) {
+      const bday = c.birthday.split('-');
+      const thisYearBday = `${today.getFullYear()}-${bday[1]}-${bday[2]}`;
+      const diff = Math.round((new Date(thisYearBday) - today) / (1000*60*60*24));
+      if (diff >= 0 && diff <= 7) alerts.push({type:'warning', text:`🎂 Compleanno di <strong>${c.name}</strong> tra ${diff} giorno/i`, date: thisYearBday});
+    }
+  });
+  data.appointments.forEach(a => {
+    if (!a.done) {
+      if (a.date === todayStr) alerts.push({type:'warning', text:`📅 Appuntamento OGGI: ${a.client || 'appuntamento'} ${a.time ? 'alle '+a.time : ''}`, date: a.date});
+      else if (a.date < todayStr) alerts.push({type:'danger', text:`❌ Appuntamento SCADUTO: ${a.client || 'appuntamento'} del ${formatDate(a.date)}`, date: a.date});
+    }
+  });
+  data.todos.forEach(t => {
+    if (!t.done && t.due && t.due < todayStr) alerts.push({type:'danger', text:`🔴 Attività in RITARDO: ${t.task}`, date: t.due});
+  });
+  return alerts.sort((a,b) => a.date.localeCompare(b.date));
+}
+
+function renderAlerts() {
+  const list = document.getElementById('alertsList');
+  const alerts = getAlerts();
+  if (alerts.length === 0) {
+    list.innerHTML = '<div class="alert-box" style="background:#d4edda;border-color:#27ae60;"><h3>✅ Tutto in ordine!</h3>Nessuna scadenza o alert attivo.</div>';
+    return;
+  }
+  list.innerHTML = alerts.map(a => `
+    <div class="alert-box ${a.type === 'danger' ? 'danger' : ''}">
+      <h3>${a.text}</h3>
+    </div>
+  `).join('');
+}
+
+// ===== UTILS =====
+function formatDate(d) {
+  if (!d) return '';
+  const parts = d.toString().split('-');
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
+// ===== INIT =====
+checkNotifPermission();
+renderClients();
+renderAppointments();
+renderTodos();
+renderReminders();
+renderAlerts();
+updateStats();
+updateBackupStats();
+checkReminders();
+initNativeNotifications();
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && isNativeApp()) {
+    refreshNativeNotificationStatus();
+    rescheduleAllNativeReminders();
+  }
+});
+</script>
+</body>
+</html>
